@@ -85,6 +85,8 @@ Instruction instructions[] = {
         {.name = "ret", .bytecode = 0x5C, .num_operands = 0},
         {.name = "args.accept", .bytecode = 0x5D, .num_operands = 1},
         {.name = "args.cleanup", .bytecode = 0x5E, .num_operands = 0},
+        {.name = "ld.arg", .bytecode = 0x5F, .num_operands = 1},
+        {.name = "st.arg", .bytecode = 0x7A, .num_operands = 1},
 
         {.name = "str.concat", .bytecode = 0x60, .num_operands = 0},
         {.name = "str.substr", .bytecode = 0x61, .num_operands = 0},

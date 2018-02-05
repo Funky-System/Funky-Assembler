@@ -310,6 +310,8 @@ static void dereference_operands(Statement *statements, int num_statements) {
                     statements[i].operands[o] = 1;
                 } else if (strcmp(reg_str, "mp") == 0) {
                     statements[i].operands[o] = 2;
+                } else if (strcmp(reg_str, "ap") == 0) {
+                    statements[i].operands[o] = 3;
                 } else if (strcmp(reg_str, "rr") == 0) {
                     statements[i].operands[o] = 4;
                 } else if (strcmp(reg_str, "r0") == 0) {
