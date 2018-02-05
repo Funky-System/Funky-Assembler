@@ -15,7 +15,7 @@ Instruction instructions[] = {
         {.name = "ld.uint", .bytecode = 0x11, .num_operands = 1},
         {.name = "ld.float", .bytecode = 0x12, .num_operands = 1},
         {.name = "ld.str", .bytecode = 0x13, .num_operands = 1},
-        {.name = "ld.obj", .bytecode = 0x14, .num_operands = 1},
+        {.name = "ld.map", .bytecode = 0x14, .num_operands = 0},
         {.name = "ld.local", .bytecode = 0x15, .num_operands = 1},
         {.name = "ld.reg", .bytecode = 0x16, .num_operands = 1},
         {.name = "ld.stack", .bytecode = 0x17, .num_operands = 1},
@@ -119,9 +119,22 @@ Instruction instructions[] = {
         {.name = "is.float", .bytecode = 0xA2, .num_operands = 0},
         {.name = "is.str", .bytecode = 0xA3, .num_operands = 0},
         {.name = "is.arr", .bytecode = 0xA4, .num_operands = 0},
-        {.name = "is.obj", .bytecode = 0xA5, .num_operands = 0},
+        {.name = "is.map", .bytecode = 0xA5, .num_operands = 0},
         {.name = "is.ref", .bytecode = 0xA6, .num_operands = 0},
         {.name = "is.empty", .bytecode = 0xA7, .num_operands = 0},
+
+        // Object model
+        {.name = "ld.mapitem", .bytecode = 0xB0, .num_operands = 1},
+        {.name = "ld.mapitem.pop", .bytecode = 0xB1, .num_operands = 0},
+        {.name = "st.mapitem", .bytecode = 0xB2, .num_operands = 1},
+        {.name = "st.mapitem.pop", .bytecode = 0xB3, .num_operands = 0},
+        {.name = "del.mapitem", .bytecode = 0xB4, .num_operands = 1},
+        {.name = "del.mapitem.pop", .bytecode = 0xB5, .num_operands = 0},
+        {.name = "has.mapitem", .bytecode = 0xB6, .num_operands = 1},
+        {.name = "has.mapitem.pop", .bytecode = 0xB7, .num_operands = 0},
+        {.name = "map.len", .bytecode = 0xB8, .num_operands = 0},
+        {.name = "map.merge", .bytecode = 0xB9, .num_operands = 0},
+        {.name = "map.copy", .bytecode = 0xBA, .num_operands = 0},
 
         NULL
 };

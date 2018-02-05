@@ -24,10 +24,11 @@
     #error Value for VM_ARCH_BITS is unsupported
 #endif
 
+typedef vm_type_t vm_pointer_t;
+
 typedef struct {
     vm_type_t type;
     vm_type_t uint_value;
 } vm_value_t;
-
 
 #endif //ASSEMBLER_VM_ARCH_H
