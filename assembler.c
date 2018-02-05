@@ -156,7 +156,7 @@ int assemble(const char *filename, const char *filename_output) {
 
             statement->instr = find_instr(instr);
             if (statement->instr == NULL) {
-                printf("%s:%d Instruction '%s' is not valid\n", filename, linenum, instr);
+                printf("%s:%d: Instruction '%s' is not valid\n", filename, linenum, instr);
                 exit(EXIT_FAILURE);
             }
 
