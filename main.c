@@ -1,7 +1,3 @@
-//
-// Created by Bas du Pré on 05-02-18.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "assembler.h"
@@ -18,7 +14,7 @@ int main(int argc, char **argv) {
 
     int option;
     struct optparse options;
-    const char *output = "out.bin";
+    const char *output = "out.funk";
 
     optparse_init(&options, argv);
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {

@@ -463,7 +463,7 @@ static size_t assemble_full(Statement *statements, int num_statements, char **ou
     // header
     output_size += 6 + 2 * sizeof(vm_type_t);
     *output = realloc(*output, output_size);
-    strcpy(*output, "bsmb");
+    strcpy(*output, "funk");
 
     char flags = 0;
 
