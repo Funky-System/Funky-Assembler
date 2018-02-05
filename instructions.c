@@ -113,6 +113,7 @@ Instruction instructions[] = {
         {.name = "ge.id", .bytecode = 0x76, .num_operands = 0},
 
         {.name = "ld.extern", .bytecode = 0x90, .num_operands = 2},
+        {.name = "ld.empty", .bytecode = 0x91, .num_operands = 0},
 
         {.name = "is.int", .bytecode = 0xA0, .num_operands = 0},
         {.name = "is.uint", .bytecode = 0xA1, .num_operands = 0},
@@ -135,6 +136,8 @@ Instruction instructions[] = {
         {.name = "map.len", .bytecode = 0xB8, .num_operands = 0},
         {.name = "map.merge", .bytecode = 0xB9, .num_operands = 0},
         {.name = "map.copy", .bytecode = 0xBA, .num_operands = 0},
+        {.name = "box", .bytecode = 0xBB, .num_operands = 0},
+        {.name = "unbox", .bytecode = 0xBC, .num_operands = 0},
 
         NULL
 };
