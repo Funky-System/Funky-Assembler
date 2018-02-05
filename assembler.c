@@ -34,7 +34,7 @@ typedef struct {
 
 static void dereference_operands(Statement *statements, int num_statements);
 static unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset);
-static vm_type_t unescape(char escape, char *filename, int linenum);
+static vm_type_t unescape(char escape, const char *filename, int linenum);
 static size_t assemble_section(const Statement *statements, int num_statements, char **output, size_t output_size,
                         enum Section section);
 static size_t assemble_full(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset);
@@ -388,7 +388,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
     }
 }
 
-static vm_type_t unescape(char escape, char *filename, int linenum) {
+static vm_type_t unescape(char escape, const char *filename, int linenum) {
     switch (escape) {
         case '\'':
             return '\'';
