@@ -27,25 +27,19 @@ typedef struct {
     unsigned int offset;
 
     unsigned int linenum;
-    char *filename;
+    const char *filename;
 
     enum Section section;
 } Statement;
 
-void dereference_operands(Statement *statements, int num_statements);
-
-size_t assemble(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset);
-
-unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset);
-
-vm_type_t unescape(char escape, char *filename, int linenum);
-
-size_t assemble_section(const Statement *statements, int num_statements, char **output, size_t output_size,
+static void dereference_operands(Statement *statements, int num_statements);
+static unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset);
+static vm_type_t unescape(char escape, char *filename, int linenum);
+static size_t assemble_section(const Statement *statements, int num_statements, char **output, size_t output_size,
                         enum Section section);
+static size_t assemble_full(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset);
 
-Instruction *find_instr(const char *instr);
-
-char *strlwr(char *s) {
+static char *strlwr(char *s) {
     char *tmp = s;
 
     for (; *tmp; ++tmp) {
@@ -55,14 +49,14 @@ char *strlwr(char *s) {
     return s;
 }
 
-int isstralphanum(char *s) {
+static int isstralphanum(char *s) {
     for (; *s; ++s) {
         if (!isalnum(*s) && *s != '_') return 0;
     }
     return 1;
 }
 
-Instruction *find_instr(const char *instr_str) {
+static Instruction *find_instr(const char *instr_str) {
     unsigned int i = 0;
     Instruction *instr;
     do {
@@ -72,17 +66,10 @@ Instruction *find_instr(const char *instr_str) {
     return instr->name == NULL ? NULL : instr;
 }
 
-int main(int argc, char **argv) {
+int assemble(const char *filename, const char *filename_output) {
     FILE *fp;
     size_t line_size = 0;
     ssize_t line_len;
-
-    if (argc != 3) {
-        printf("Usage: %s [in.asm] [out.bin]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    char *filename = argv[1];
 
     fp = fopen(filename, "r");
     if (fp == NULL) {
@@ -238,8 +225,8 @@ int main(int argc, char **argv) {
     dereference_operands(statements, num_statements);
 
     char *output = malloc(1);
-    size_t size = assemble(statements, num_statements, &output, text_section_offset);
-    FILE *outFile = fopen(argv[2], "wb");
+    size_t size = assemble_full(statements, num_statements, &output, text_section_offset);
+    FILE *outFile = fopen(filename_output, "wb");
     if (outFile == NULL) {
         int errnum = errno;
         printf("Error: Could not write to file %s\n", filename);
@@ -255,7 +242,7 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 }
 
-unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset) {
+static unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset) {
     for (int i = 0; i < num_statements; i++) {
         if (statements[i].section != section) continue;
 
@@ -284,7 +271,7 @@ unsigned int calculate_offsets(Statement *statements, int num_statements, enum S
     return offset;
 }
 
-void dereference_operands(Statement *statements, int num_statements) {
+static void dereference_operands(Statement *statements, int num_statements) {
     for (int i = 0; i < num_statements; i++) {
         statements[i].operands = malloc(sizeof(vm_type_t) * statements[i].num_operands);
         for (int o = 0; o < statements[i].num_operands; o++) {
@@ -401,7 +388,7 @@ void dereference_operands(Statement *statements, int num_statements) {
     }
 }
 
-vm_type_t unescape(char escape, char *filename, int linenum) {
+static vm_type_t unescape(char escape, char *filename, int linenum) {
     switch (escape) {
         case '\'':
             return '\'';
@@ -460,7 +447,7 @@ vm_type_t unescape(char escape, char *filename, int linenum) {
 //#define FLAG_LITTLE_ENDIAN 64
 //#define FLAG_LITTLE_ENDIAN 128
 
-vm_type_t get_num_exports(Statement *statements, int num_statements) {
+static vm_type_t get_num_exports(Statement *statements, int num_statements) {
     vm_type_t num = 0;
     for (int i = 0; i < num_statements; i++) {
         if (statements[i].instr != NULL && strcmp(statements[i].instr->name, "export") == 0)
@@ -469,7 +456,7 @@ vm_type_t get_num_exports(Statement *statements, int num_statements) {
     return num;
 }
 
-size_t assemble(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset) {
+static size_t assemble_full(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset) {
     *output = realloc(*output, 0);
     size_t output_size = 0;
 
@@ -498,7 +485,7 @@ size_t assemble(Statement *statements, int num_statements, char **output, vm_typ
 
 }
 
-size_t assemble_section(const Statement *statements, int num_statements, char **output, size_t output_size,
+static size_t assemble_section(const Statement *statements, int num_statements, char **output, size_t output_size,
                         enum Section section) {
     for (int i = 0; i < num_statements; i++) {
         if (statements[i].section != section) continue;
