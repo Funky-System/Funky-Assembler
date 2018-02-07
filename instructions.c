@@ -136,8 +136,10 @@ Instruction instructions[] = {
         {.name = "map.len", .bytecode = 0xB8, .num_operands = 0},
         {.name = "map.merge", .bytecode = 0xB9, .num_operands = 0},
         {.name = "map.copy", .bytecode = 0xBA, .num_operands = 0},
-        {.name = "box", .bytecode = 0xBB, .num_operands = 0},
-        {.name = "unbox", .bytecode = 0xBC, .num_operands = 0},
+        {.name = "map.getprototype", .bytecode = 0xBB, .num_operands = 0},
+        {.name = "map.setprototype", .bytecode = 0xBC, .num_operands = 0},
+        {.name = "box", .bytecode = 0xBD, .num_operands = 0},
+        {.name = "unbox", .bytecode = 0xBE, .num_operands = 0},
 
         NULL
 };
