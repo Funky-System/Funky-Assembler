@@ -51,7 +51,7 @@ static char *strlwr(char *s) {
 
 static int isstralphanum(char *s) {
     for (; *s; ++s) {
-        if (!isalnum(*s) && *s != '_') return 0;
+        if (!isalnum(*s) && *s != '_' && *s != '.' && *s != '@') return 0;
     }
     return 1;
 }
