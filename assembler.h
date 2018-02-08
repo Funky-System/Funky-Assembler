@@ -5,6 +5,6 @@
 #ifndef ASSEMBLER_ASSEMBLER_H
 #define ASSEMBLER_ASSEMBLER_H
 
-int assemble(const char *filename, const char *filename_output);
+int assemble(const char *filename, const char *filename_output, int strip_debug);
 
 #endif //ASSEMBLER_ASSEMBLER_H

@@ -8,8 +8,11 @@ Instruction instructions[] = {
         {.name = "halt", .bytecode = 0x01, .num_operands = 0},
         {.name = "trap", .bytecode = 0x02, .num_operands = 1},
         {.name = "int", .bytecode = 0x03, .num_operands = 1},
-        {.name = "break", .bytecode = 0x04, .num_operands = 0},
-        {.name = "link", .bytecode = 0x05, .num_operands = 1},
+        {.name = "link", .bytecode = 0x04, .num_operands = 1},
+        {.name = "break.break", .bytecode = 0x05, .num_operands = 0},
+        {.name = "debug.setcontext", .bytecode = 0x06, .num_operands = 3},
+        {.name = "debug.enterscope", .bytecode = 0x07, .num_operands = 1},
+        {.name = "debug.leavescope", .bytecode = 0x08, .num_operands = 0},
 
         {.name = "ld.int", .bytecode = 0x10, .num_operands = 1},
         {.name = "ld.uint", .bytecode = 0x11, .num_operands = 1},

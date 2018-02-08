@@ -9,11 +9,13 @@
 int main(int argc, char **argv) {
     struct optparse_long longopts[] = {
             {"output", 'o', OPTPARSE_REQUIRED},
+            {"strip-debug", 'r', OPTPARSE_REQUIRED},
             {0}
     };
 
     int option;
     struct optparse options;
+    int strip_debug = 0;
     const char *output = "out.funk";
 
     optparse_init(&options, argv);
@@ -22,6 +24,9 @@ int main(int argc, char **argv) {
             case 'o':
                 output = options.optarg;
                 break;
+            case 'r':
+                strip_debug = 1;
+            default:
             case '?':
                 fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
                 exit(EXIT_FAILURE);
@@ -39,5 +44,5 @@ int main(int argc, char **argv) {
     }
 
     char *filename = optparse_arg(&options);
-    return assemble(filename, output);
+    return assemble(filename, output, strip_debug);
 }

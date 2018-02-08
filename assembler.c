@@ -66,7 +66,7 @@ static Instruction *find_instr(const char *instr_str) {
     return instr->name == NULL ? NULL : instr;
 }
 
-int assemble(const char *filename, const char *filename_output) {
+int assemble(const char *filename, const char *filename_output, int strip_debug) {
     FILE *fp;
     size_t line_size = 0;
     ssize_t line_len;
@@ -151,6 +151,11 @@ int assemble(const char *filename, const char *filename_output) {
 
         if (instr != NULL) {
             strlwr(instr);
+
+            if (strip_debug && str_startswith(instr, "debug.")) {
+                continue;
+            }
+
             statement->instr_str = malloc(strlen(instr) + 1);
             strcpy(statement->instr_str, instr);
 
