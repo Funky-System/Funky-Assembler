@@ -27,6 +27,7 @@ Instruction instructions[] = {
         {.name = "ld.sref", .bytecode = 0x18, .num_operands = 1},
         {.name = "ld.lref", .bytecode = 0x1A, .num_operands = 1},
         {.name = "ld.ref", .bytecode = 0x1B, .num_operands = 1},
+        {.name = "ld.addr", .bytecode = 0x79, .num_operands = 1},
         {.name = "pop", .bytecode = 0x1C, .num_operands = 0},
         {.name = "st.reg", .bytecode = 0x1D, .num_operands = 1},
         {.name = "st.stack", .bytecode = 0x19, .num_operands = 1},
