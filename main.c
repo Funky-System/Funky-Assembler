@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
                 break;
             case 'r':
                 strip_debug = 1;
+                break;
             default:
             case '?':
                 fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);

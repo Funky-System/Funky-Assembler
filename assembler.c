@@ -6,6 +6,7 @@
 
 #include "instructions.h"
 #include "vm_arch.h"
+#include "constants.h"
 
 #define str_startswith(str, strstart) (strstr(str, strstart) == (str))
 
@@ -304,7 +305,6 @@ static void dereference_operands(Statement *statements, int num_statements) {
                 continue;
             }
 
-
             if (operand_str[0] == '%') {
                 // reference a register
                 char *reg_str = operand_str + 1;
@@ -344,20 +344,27 @@ static void dereference_operands(Statement *statements, int num_statements) {
             }
 
             if (isstralphanum(operand_str)) {
-                // looks like a label
-                int found_label = 0;
-                for (int j = 0; j < num_statements; j++) {
-                    if (statements[j].label != NULL && strcmp(operand_str, statements[j].label) == 0) {
-                        // found a label!
-                        statements[i].operands[o] = statements[j].offset;
-                        found_label = 1;
-                        break;
+                // check for constant
+                if (is_constant(operand_str)) {
+                    statements[i].operands[o] = (vm_type_t) get_constant(operand_str);
+                    continue;
+                } else {
+                    // looks like a label
+                    int found_label = 0;
+                    for (int j = 0; j < num_statements; j++) {
+                        if (statements[j].label != NULL && strcmp(operand_str, statements[j].label) == 0) {
+                            // found a label!
+                            statements[i].operands[o] = statements[j].offset;
+                            found_label = 1;
+                            break;
+                        }
                     }
-                }
-                if (found_label) continue;
+                    if (found_label) continue;
 
-                printf("%s:%d Could not find label '%s'\n", statements[i].filename, statements[i].linenum, operand_str);
-                exit(EXIT_FAILURE);
+                    printf("%s:%d Could not find label '%s'\n", statements[i].filename, statements[i].linenum,
+                           operand_str);
+                    exit(EXIT_FAILURE);
+                }
             }
 
             if (operand_str[0] == '\'') {

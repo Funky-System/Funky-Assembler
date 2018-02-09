@@ -143,6 +143,7 @@ Instruction instructions[] = {
         {.name = "map.setprototype", .bytecode = 0xBC, .num_operands = 0},
         {.name = "box", .bytecode = 0xBD, .num_operands = 0},
         {.name = "unbox", .bytecode = 0xBE, .num_operands = 0},
+        {.name = "ld.boxingproto", .bytecode = 0xBF, .num_operands = 1},
 
         NULL
 };

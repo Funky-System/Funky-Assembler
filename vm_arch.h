@@ -26,8 +26,23 @@
 
 typedef vm_type_t vm_pointer_t;
 
+enum vm_value_type_t {
+    VM_TYPE_INT = 0,
+    VM_TYPE_UINT,
+    VM_TYPE_FLOAT,
+    VM_TYPE_STRING,
+    VM_TYPE_REF,    // address of a vm_value_t somewhere
+    VM_TYPE_MAP, // address of a custom type (vm_obj_t)
+    VM_TYPE_ARRAY,
+    VM_TYPE_EMPTY,
+    VM_TYPE_UNKNOWN
+};
+
 typedef struct {
-    vm_type_t type;
+    union {
+        enum vm_value_type_t type;
+        vm_type_t __padding1;
+    };
     vm_type_t uint_value;
 } vm_value_t;
 
