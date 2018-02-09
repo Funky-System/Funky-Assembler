@@ -2,8 +2,9 @@
 #include "instructions.h"
 
 Instruction instructions[] = {
-        {.name = "export", .bytecode = 0x00, .num_operands = 1},
-        {.name = "export.as", .bytecode = 0x00, .num_operands = 2},
+        {.name = "export", .bytecode = 0, .num_operands = 1},
+        {.name = "export.as", .bytecode = 0, .num_operands = 2},
+        {.name = "data", .bytecode = 0, .num_operands = 1},
 
         {.name = "nop", .bytecode = 0x00, .num_operands = 0},
         {.name = "halt", .bytecode = 0x01, .num_operands = 0},
@@ -51,7 +52,6 @@ Instruction instructions[] = {
         {.name = "deref", .bytecode = 0x2D, .num_operands = 0},
         {.name = "var", .bytecode = 0x2E, .num_operands = 0},
         {.name = "ld.deref", .bytecode = 0x2F, .num_operands = 1},
-        {.name = "data", .bytecode = 0xFF, .num_operands = 1},
 
         {.name = "add", .bytecode = 0x30, .num_operands = 0},
         {.name = "sub", .bytecode = 0x31, .num_operands = 0},
