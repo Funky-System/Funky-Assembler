@@ -166,7 +166,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                 exit(EXIT_FAILURE);
             }
 
-            if (strcmp(instr, "export") == 0) {
+            if (strcmp(instr, "export") == 0 || strcmp(instr, "export.as") == 0) {
                 if (section != SECTION_EXPORTS) {
                     printf("%s:%d EXPORT found in section other than .EXPORTS'\n", filename, linenum);
                     exit(EXIT_FAILURE);
@@ -189,7 +189,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                     operand[strlen(operand) - 1] = '\0';
                 statement->operands_str[statement->num_operands - 1] = operand;
 
-                if (strcmp(instr, "data") != 0 && operand[0] == '"') {
+                if ((strcmp(instr, "data") != 0 && strcmp(instr, "export.as") != 0) && operand[0] == '"') {
                     // this is a string, create a .data statement
                     char *data_label = malloc(12);
                     int num_operands = statement->num_operands;
@@ -267,6 +267,9 @@ static unsigned int calculate_offsets(Statement *statements, int num_statements,
             }
         } else if (strcmp(statements[i].instr->name, "export") == 0) {
             offset += strlen(statements[i].operands_str[0]) + 1;
+            offset += sizeof(vm_type_t);
+        } else if (strcmp(statements[i].instr->name, "export.as") == 0) {
+            offset += strlen(statements[i].operands_str[1]) - 2 + 1;
             offset += sizeof(vm_type_t);
         } else {
             offset += 1; // bytecode
@@ -464,7 +467,7 @@ static vm_type_t unescape(char escape, const char *filename, int linenum) {
 static vm_type_t get_num_exports(Statement *statements, int num_statements) {
     vm_type_t num = 0;
     for (int i = 0; i < num_statements; i++) {
-        if (statements[i].instr != NULL && strcmp(statements[i].instr->name, "export") == 0)
+        if (statements[i].instr != NULL && str_startswith(statements[i].instr->name, "export"))
             num++;
     }
     return num;
@@ -536,6 +539,18 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
             *output = realloc(*output, output_size);
             strcpy((*output) + offset, statements[i].operands_str[0]);
             offset += strlen(statements[i].operands_str[0]) + 1;
+            for (int b = 0; b < sizeof(vm_type_t); b++) {
+                (*output)[offset++] = ((char *) (&statements[i].operands[0]))[b];
+            }
+        } else if (strcmp(statements[i].instr->name, "export.as") == 0) {
+            char *name = malloc(strlen(statements[i].operands_str[1] + 1));
+            name[0] = '\0';
+            strncpy(name, statements[i].operands_str[1] + 1, strlen(statements[i].operands_str[1]) - 2);
+
+            output_size += strlen(name) + 1 + sizeof(vm_type_t);
+            *output = realloc(*output, output_size);
+            strcpy((*output) + offset, name);
+            offset += strlen(name) + 1;
             for (int b = 0; b < sizeof(vm_type_t); b++) {
                 (*output)[offset++] = ((char *) (&statements[i].operands[0]))[b];
             }

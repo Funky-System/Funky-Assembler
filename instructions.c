@@ -3,6 +3,7 @@
 
 Instruction instructions[] = {
         {.name = "export", .bytecode = 0x00, .num_operands = 1},
+        {.name = "export.as", .bytecode = 0x00, .num_operands = 2},
 
         {.name = "nop", .bytecode = 0x00, .num_operands = 0},
         {.name = "halt", .bytecode = 0x01, .num_operands = 0},
