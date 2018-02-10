@@ -545,7 +545,7 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
         } else if (strcmp(statements[i].instr->name, "export.as") == 0) {
             char *name = malloc(strlen(statements[i].operands_str[1] + 1));
             name[0] = '\0';
-            strncpy(name, statements[i].operands_str[1] + 1, strlen(statements[i].operands_str[1]) - 2);
+            strncat(name, statements[i].operands_str[1] + 1, strlen(statements[i].operands_str[1]) - 2);
 
             output_size += strlen(name) + 1 + sizeof(vm_type_t);
             *output = realloc(*output, output_size);
