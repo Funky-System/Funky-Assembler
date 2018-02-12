@@ -41,6 +41,8 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
                         enum Section section);
 static size_t assemble_full(Statement *statements, int num_statements, char **output, vm_type_t text_section_offset);
 
+void destroy(Statement *statements, int i);
+
 static char *strlwr(char *s) {
     char *tmp = s;
 
@@ -211,6 +213,9 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                 strcpy(operand, operand_tok);
                 while (operand[0] == '\t' || operand[0] == ' ')
                     operand++;
+                operand = strdup(operand);
+                free(orig_operand);
+
                 while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ')
                     operand[strlen(operand) - 1] = '\0';
 
@@ -218,7 +223,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                     char *replaced_data = str_replace(operand, "\\\"", "\"");
                     str_replace_inplace(&replaced_data, "\\n", "\n");
                     str_replace_inplace(&replaced_data, "\\0", "\0");
-                    free(orig_operand);
+                    free(operand);
                     operand = replaced_data;
                 }
 
@@ -238,13 +243,13 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                     data_statement->filename = filename;
                     data_statement->section = SECTION_DATA;
                     data_statement->instr = find_instr("data");
-                    data_statement->instr_str = "data";
+                    data_statement->instr_str = strdup("data");
                     data_statement->label = data_label;
                     data_statement->operands_str = malloc(sizeof(char *));
                     data_statement->operands_str[0] = statement->operands_str[statement->num_operands - 1];
                     data_statement->num_operands = 1;
 
-                    statement->operands_str[statement->num_operands - 1] = data_label;
+                    statement->operands_str[statement->num_operands - 1] = strdup(data_label);
                 }
 
                 operand_tok = strtok(NULL, ",\n");
@@ -256,6 +261,8 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
             }
         }
     }
+
+    free(orig_line);
 
     unsigned int offset = 0;
     offset = calculate_offsets(statements, num_statements, SECTION_EXPORTS, offset);
@@ -276,11 +283,25 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
     }
     fwrite(output, sizeof(char), size, outFile);
     free(output);
+    destroy(statements, num_statements);
 
     fclose(outFile);
     fclose(fp);
 
     return EXIT_SUCCESS;
+}
+
+void destroy(Statement *statements, int num) {
+    for (int i = 0; i < num; i++) {
+        free(statements[i].instr_str);
+        if (statements[i].label != NULL) free(statements[i].label);
+        for (int j = 0; j < statements[i].num_operands; j++) {
+            free(statements[i].operands_str[j]);
+        }
+        free(statements[i].operands_str);
+        free(statements[i].operands);
+    }
+    free(statements);
 }
 
 static unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset) {
