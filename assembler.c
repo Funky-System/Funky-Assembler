@@ -145,7 +145,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                    statement->label[strlen(statement->label) - 1] == ' ') {
                 statement->label[strlen(statement->label) - 1] = '\0';
             }
-            if (label[0] != '\0') {
+            if (label[1] != '\0') {
                 line = label + 1;
                 line_len = strlen(line);
             } else {
