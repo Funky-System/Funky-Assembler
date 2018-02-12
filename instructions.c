@@ -15,6 +15,9 @@ Instruction instructions[] = {
         {.name = "debug.setcontext", .bytecode = 0x06, .num_operands = 3},
         {.name = "debug.enterscope", .bytecode = 0x07, .num_operands = 1},
         {.name = "debug.leavescope", .bytecode = 0x08, .num_operands = 0},
+        {.name = "unlink", .bytecode = 0x09, .num_operands = 1},
+        {.name = "syscall.getindex", .bytecode = 0x0E, .num_operands = 1},
+        {.name = "syscall", .bytecode = 0x0F, .num_operands = 1},
 
         {.name = "ld.int", .bytecode = 0x10, .num_operands = 1},
         {.name = "ld.uint", .bytecode = 0x11, .num_operands = 1},
@@ -146,6 +149,9 @@ Instruction instructions[] = {
         {.name = "box", .bytecode = 0xBD, .num_operands = 0},
         {.name = "unbox", .bytecode = 0xBE, .num_operands = 0},
         {.name = "ld.boxingproto", .bytecode = 0xBF, .num_operands = 1},
+        {.name = "map.renamekey", .bytecode = 0xC0, .num_operands = 2},
+        {.name = "map.renamekey.pop", .bytecode = 0xC1, .num_operands = 0},
+        {.name = "map.getkeys", .bytecode = 0xC2, .num_operands = 0},
 
         NULL
 };
