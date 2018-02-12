@@ -9,7 +9,7 @@ add_library(funky-as
         assembler.c
         instructions.c
         instructions.h
-        vm_arch.h main.c assembler.h constants.c constants.h)
+        vm_arch.h main.c assembler.h constants.c constants.h string_functions.c)
 
 add_executable(funky-as-bin main.c)
 target_link_libraries(funky-as-bin funky-as)

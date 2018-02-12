@@ -7,6 +7,7 @@
 #include "instructions.h"
 #include "vm_arch.h"
 #include "constants.h"
+#include "string_functions.h"
 
 #define str_startswith(str, strstart) (strstr(str, strstart) == (str))
 
@@ -92,16 +93,17 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
     while ((line_len = getline(&orig_line, &line_size, fp)) != -1) {
         char *line = orig_line;
         linenum++;
-        // Trim whitespace from front
-        while (line[0] == '\t' || line[0] == ' ') {
-            line++, line_len--;
-        }
 
         // Find comment and remove everything past the comment char (#)
         char *comment = strpbrk(line, "#");
         if (comment != NULL) {
             *comment = '\0';
             line_len = strlen(line);
+        }
+
+        // Trim whitespace from front
+        while (line[0] == '\t' || line[0] == ' ') {
+            line++, line_len--;
         }
 
         // Check for section
@@ -134,7 +136,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
         char *label = strpbrk(line, ":");
         if (label != NULL) {
             *label = '\0';
-            statement->label = malloc(strlen(line));
+            statement->label = malloc(strlen(line) + 1);
             strcpy(statement->label, line);
             while (statement->label[0] == '\t' || statement->label[0] == ' ') {
                 statement->label++;
@@ -143,8 +145,12 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                    statement->label[strlen(statement->label) - 1] == ' ') {
                 statement->label[strlen(statement->label) - 1] = '\0';
             }
-            line = label + 1;
-            line_len = strlen(line);
+            if (label[0] != '\0') {
+                line = label + 1;
+                line_len = strlen(line);
+            } else {
+                line = label;
+            }
         }
 
         // Get the instruction
@@ -182,11 +188,21 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                 statement->operands_str = realloc(statement->operands_str,
                                                   sizeof(char *) * statement->num_operands);
                 char *operand = malloc(strlen(operand_tok) + 1);
+                char *orig_operand = operand; // to pass to free
                 strcpy(operand, operand_tok);
                 while (operand[0] == '\t' || operand[0] == ' ')
                     operand++;
                 while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ')
                     operand[strlen(operand) - 1] = '\0';
+
+                if (operand[0] == '"') {
+                    char *replaced_data = str_replace(operand, "\\\"", "\"");
+                    str_replace_inplace(&replaced_data, "\\n", "\n");
+                    str_replace_inplace(&replaced_data, "\\0", "\0");
+                    free(orig_operand);
+                    operand = replaced_data;
+                }
+
                 statement->operands_str[statement->num_operands - 1] = operand;
 
                 if ((strcmp(instr, "data") != 0 && strcmp(instr, "export.as") != 0) && operand[0] == '"') {
