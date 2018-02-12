@@ -37,6 +37,7 @@ Instruction instructions[] = {
         {.name = "st.reg", .bytecode = 0x1D, .num_operands = 1},
         {.name = "st.stack", .bytecode = 0x19, .num_operands = 1},
         {.name = "st.stack.pop", .bytecode = 0x92, .num_operands = 0},
+        {.name = "st.arg.pop", .bytecode = 0x93, .num_operands = 0},
         {.name = "st.local", .bytecode = 0x1E, .num_operands = 1},
         {.name = "st.ref", .bytecode = 0x1F, .num_operands = 1},
         {.name = "st.addr", .bytecode = 0x77, .num_operands = 1},
