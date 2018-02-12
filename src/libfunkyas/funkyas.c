@@ -113,8 +113,14 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
 
         // Find comment and remove everything past the comment char (#)
         char *comment = strpbrk(line, "#");
-        if (comment != NULL) {
+        while (comment != NULL) {
             *comment = '\0';
+            if (ends_in_open_string_literal(line)) {
+                *comment = '#';
+                comment = strpbrk(comment + 1, "#");
+            } else {
+                break;
+            }
             line_len = strlen(line);
         }
 
