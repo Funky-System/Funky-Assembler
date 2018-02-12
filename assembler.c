@@ -68,6 +68,21 @@ static Instruction *find_instr(const char *instr_str) {
     return instr->name == NULL ? NULL : instr;
 }
 
+int ends_in_open_string_literal(char *str) {
+    size_t len = strlen(str);
+    int open = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (str[i] == '\\') {
+            i++;
+        } else {
+            if (str[i] == '"') {
+                open = !open;
+            }
+        }
+    }
+    return open;
+}
+
 int assemble(const char *filename, const char *filename_output, int strip_debug) {
     FILE *fp;
     size_t line_size = 0;
@@ -136,20 +151,24 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
         char *label = strpbrk(line, ":");
         if (label != NULL) {
             *label = '\0';
-            statement->label = malloc(strlen(line) + 1);
-            strcpy(statement->label, line);
-            while (statement->label[0] == '\t' || statement->label[0] == ' ') {
-                statement->label++;
-            }
-            while (statement->label[strlen(statement->label) - 1] == '\t' ||
-                   statement->label[strlen(statement->label) - 1] == ' ') {
-                statement->label[strlen(statement->label) - 1] = '\0';
-            }
-            if (label[1] != '\0') {
-                line = label + 1;
-                line_len = strlen(line);
+            if (!ends_in_open_string_literal(line)) {
+                statement->label = malloc(strlen(line) + 1);
+                strcpy(statement->label, line);
+                while (statement->label[0] == '\t' || statement->label[0] == ' ') {
+                    statement->label++;
+                }
+                while (statement->label[strlen(statement->label) - 1] == '\t' ||
+                       statement->label[strlen(statement->label) - 1] == ' ') {
+                    statement->label[strlen(statement->label) - 1] = '\0';
+                }
+                if (label[1] != '\0') {
+                    line = label + 1;
+                    line_len = strlen(line);
+                } else {
+                    line = label;
+                }
             } else {
-                line = label;
+                *label = ':';
             }
         }
 
