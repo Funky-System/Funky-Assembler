@@ -5,7 +5,7 @@
 #include <errno.h>
 
 #include "instructions.h"
-#include "vm_arch.h"
+#include "funkyas/vm_arch.h"
 #include "constants.h"
 #include "string_functions.h"
 

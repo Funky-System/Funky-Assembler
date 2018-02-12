@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "assembler.h"
+#include "funkyas/funkyas.h"
 
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static

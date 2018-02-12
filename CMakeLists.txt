@@ -5,12 +5,15 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_definitions(-DVM_ARCH_BITS=32)
 
-add_library(funky-as
-        assembler.c
-        instructions.c
-        instructions.h
-        vm_arch.h main.c assembler.h constants.c constants.h string_functions.c)
+include_directories(include)
 
-add_executable(funky-as-bin main.c)
+add_library(funky-as
+        src/libfunkyas/funkyas.c
+        src/libfunkyas/instructions.c
+        src/libfunkyas/instructions.h
+        include/funkyas/vm_arch.h src/main.c include/funkyas/funkyas.h src/libfunkyas/constants.c src/libfunkyas/constants.h src/libfunkyas/string_functions.c)
+
+add_executable(funky-as-bin src/main.c)
 target_link_libraries(funky-as-bin funky-as)
 set_target_properties(funky-as-bin PROPERTIES OUTPUT_NAME funky-as)
+file(COPY include DESTINATION ${CMAKE_BINARY_DIR})

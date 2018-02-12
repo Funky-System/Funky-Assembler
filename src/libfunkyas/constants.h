@@ -5,7 +5,7 @@
 #ifndef FUNKY_AS_CONSTANTS_H
 #define FUNKY_AS_CONSTANTS_H
 
-#include "vm_arch.h"
+#include "funkyas/vm_arch.h"
 
 int is_constant(const char* str);
 vm_type_t get_constant(const char* str);
