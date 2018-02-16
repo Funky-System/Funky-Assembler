@@ -6,6 +6,7 @@
 
 #include "instructions.h"
 #include "funkyas/vm_arch.h"
+#include "funkyas/funkyas.h"
 #include "constants.h"
 #include "string_functions.h"
 
@@ -85,20 +86,50 @@ int ends_in_open_string_literal(char *str) {
     return open;
 }
 
-int assemble(const char *filename, const char *filename_output, int strip_debug) {
+int assemble_file_to_file(const char *filename_in, const char *filename_output, int strip_debug) {
     FILE *fp;
-    size_t line_size = 0;
-    ssize_t line_len;
-
-    fp = fopen(filename, "r");
+    fp = fopen(filename_in, "r");
     if (fp == NULL) {
         int errnum = errno;
-        printf("Error: Could not open file %s\n", filename);
-        printf("%s\n", strerror(errnum));
+        fprintf(stderr, "Error: Could not open file %s\n", filename_in);
+        fprintf(stderr, "%s", strerror(errnum));
         exit(EXIT_FAILURE);
     }
 
-    char *orig_line = malloc(1);
+    fseek(fp, 0L, SEEK_END);
+    size_t numbytes = (size_t)ftell(fp);
+
+    // reset the file position indicator to the beginning of the file
+    fseek(fp, 0L, SEEK_SET);
+
+    char *code_in = malloc(numbytes + 1);
+    fread(code_in, sizeof(char), numbytes, fp);
+    code_in[numbytes] = '\0';
+
+    fclose(fp);
+
+    size_t size;
+    char *output = assemble_string_to_string(filename_in, code_in, strip_debug, &size);
+    free(code_in);
+
+    FILE *outFile = fopen(filename_output, "wb");
+    if (outFile == NULL) {
+        int errnum = errno;
+        fprintf(stderr, "Error: Could not write to file %s\n", filename_output);
+        fprintf(stderr, "%s\n", strerror(errnum));
+        exit(EXIT_FAILURE);
+    }
+    fwrite(output, sizeof(char), size, outFile);
+    free(output);
+
+    fclose(outFile);
+
+    return 1;
+}
+
+char* assemble_string_to_string(const char *filename_hint, const char *input, int strip_debug, size_t *size_out) {
+    size_t line_size = 0;
+
     line_size = 1;
     unsigned int linenum = 0;
 
@@ -107,7 +138,22 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
 
     enum Section section = SECTION_TEXT;
 
-    while ((line_len = getline(&orig_line, &line_size, fp)) != -1) {
+    int first_line = 1;
+
+    while ((input = first_line ? input : strchr(input, '\n') + 1) != NULL + 1) {
+        first_line = 0;
+
+        const char *next_line = strchr(input, '\n');
+        size_t length;
+        if (next_line != NULL) {
+            length = next_line - input + 1;
+        } else {
+            length = strlen(input);
+        }
+        char *orig_line = malloc(length + 1);
+        orig_line[0] = '\0';
+        strncat(orig_line, input, length);
+
         char *line = orig_line;
         linenum++;
 
@@ -121,12 +167,11 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
             } else {
                 break;
             }
-            line_len = strlen(line);
         }
 
         // Trim whitespace from front
         while (line[0] == '\t' || line[0] == ' ') {
-            line++, line_len--;
+            line++;
         }
 
         // Check for section
@@ -141,7 +186,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
             else if (strcmp(section_str, ".text") == 0) section = SECTION_TEXT;
             else if (strcmp(section_str, ".exports") == 0) section = SECTION_EXPORTS;
             else {
-                fprintf(stderr, "%s:%d Error: %s is not a valid section title\n", filename, linenum, section_str);
+                fprintf(stderr, "%s:%d Error: %s is not a valid section title\n", filename_hint, linenum, section_str);
                 exit(EXIT_FAILURE);
             }
             continue;
@@ -152,7 +197,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
         memset(&statements[num_statements - 1], 0, sizeof(Statement));
         Statement *statement = &statements[num_statements - 1];
         statement->linenum = linenum;
-        statement->filename = filename;
+        statement->filename = filename_hint;
         statement->section = section;
 
         // Check for label
@@ -171,7 +216,6 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                 }
                 if (label[1] != '\0') {
                     line = label + 1;
-                    line_len = strlen(line);
                 } else {
                     line = label;
                 }
@@ -195,13 +239,13 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
 
             statement->instr = find_instr(instr);
             if (statement->instr == NULL) {
-                printf("%s:%d: Instruction '%s' is not valid\n", filename, linenum, instr);
+                printf("%s:%d: Instruction '%s' is not valid\n", filename_hint, linenum, instr);
                 exit(EXIT_FAILURE);
             }
 
             if (strcmp(instr, "export") == 0 || strcmp(instr, "export.as") == 0) {
                 if (section != SECTION_EXPORTS) {
-                    printf("%s:%d EXPORT found in section other than .EXPORTS'\n", filename, linenum);
+                    printf("%s:%d EXPORT found in section other than .EXPORTS'\n", filename_hint, linenum);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -246,7 +290,7 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                     statement = &statements[num_statements - num_operands - 1]; // realloc might have changed it's position, so reset it
                     Statement *data_statement = &statements[num_statements - 1];
                     data_statement->linenum = linenum;
-                    data_statement->filename = filename;
+                    data_statement->filename = filename_hint;
                     data_statement->section = SECTION_DATA;
                     data_statement->instr = find_instr("data");
                     data_statement->instr_str = strdup("data");
@@ -261,14 +305,13 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
                 operand_tok = strtok(NULL, ",\n");
             }
             if (statement->num_operands != statement->instr->num_operands) {
-                printf("%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename, linenum,
+                printf("%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename_hint, linenum,
                        instr, statement->instr->num_operands, statement->num_operands);
                 exit(EXIT_FAILURE);
             }
         }
+        free(orig_line);
     }
-
-    free(orig_line);
 
     unsigned int offset = 0;
     offset = calculate_offsets(statements, num_statements, SECTION_EXPORTS, offset);
@@ -279,22 +322,10 @@ int assemble(const char *filename, const char *filename_output, int strip_debug)
     dereference_operands(statements, num_statements);
 
     char *output = malloc(1);
-    size_t size = assemble_full(statements, num_statements, &output, text_section_offset);
-    FILE *outFile = fopen(filename_output, "wb");
-    if (outFile == NULL) {
-        int errnum = errno;
-        printf("Error: Could not write to file %s\n", filename);
-        printf("%s\n", strerror(errnum));
-        exit(EXIT_FAILURE);
-    }
-    fwrite(output, sizeof(char), size, outFile);
-    free(output);
+    *size_out = assemble_full(statements, num_statements, &output, text_section_offset);
     destroy(statements, num_statements);
 
-    fclose(outFile);
-    fclose(fp);
-
-    return EXIT_SUCCESS;
+    return output;
 }
 
 void destroy(Statement *statements, int num) {
