@@ -270,9 +270,9 @@ char* assemble_string_to_string(const char *filename_hint, const char *input, in
                     operand[strlen(operand) - 1] = '\0';
 
                 if (operand[0] == '"') {
-                    char *replaced_data = str_replace(operand, "\\\"", "\"");
-                    str_replace_inplace(&replaced_data, "\\n", "\n");
-                    str_replace_inplace(&replaced_data, "\\0", "\0");
+                    char *replaced_data = fas_str_replace(operand, "\\\"", "\"");
+                    fas_str_replace_inplace(&replaced_data, "\\n", "\n");
+                    fas_str_replace_inplace(&replaced_data, "\\0", "\0");
                     free(operand);
                     operand = replaced_data;
                 }
