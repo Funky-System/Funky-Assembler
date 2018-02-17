@@ -7,7 +7,7 @@
 
 #include "string_functions.h"
 
-char* str_replace(const char* string, const char* substr, const char* replacement) {
+char* fas_str_replace(const char *string, const char *substr, const char *replacement) {
 	char* tok = NULL;
 	char* newstr = NULL;
 	char* oldstr = NULL;
@@ -44,8 +44,8 @@ char* str_replace(const char* string, const char* substr, const char* replacemen
 	return newstr;
 }
 
-void str_replace_inplace(char** old_str, const char* substr, const char* replacement) {
-	char *new_str = str_replace(*old_str, substr, replacement);
+void fas_str_replace_inplace(char **old_str, const char *substr, const char *replacement) {
+	char *new_str = fas_str_replace(*old_str, substr, replacement);
 	free(*old_str);
 	*old_str = new_str;
 }

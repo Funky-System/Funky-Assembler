@@ -7,7 +7,7 @@ add_definitions(-DVM_ARCH_BITS=32)
 
 include_directories(include)
 
-add_library(funky-as
+add_library(funky-as STATIC
         src/libfunkyas/funkyas.c
         src/libfunkyas/instructions.c
         src/libfunkyas/instructions.h
