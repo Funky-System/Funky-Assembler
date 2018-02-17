@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     }
 
     char *filename = optparse_arg(&options);
-    if (assemble_file_to_file(filename, output, strip_debug)) {
+    if (funky_assemble_files(filename, output, strip_debug)) {
         return EXIT_SUCCESS;
     } else {
         return EXIT_FAILURE;
