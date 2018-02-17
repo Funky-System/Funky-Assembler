@@ -11,7 +11,7 @@ add_library(funky-as STATIC
         src/libfunkyas/funkyas.c
         src/libfunkyas/instructions.c
         src/libfunkyas/instructions.h
-        include/funkyas/vm_arch.h src/main.c include/funkyas/funkyas.h src/libfunkyas/constants.c src/libfunkyas/constants.h src/libfunkyas/string_functions.c)
+        src/libfunkyas/vm_arch.h src/main.c include/funkyas/funkyas.h src/libfunkyas/constants.c src/libfunkyas/constants.h src/libfunkyas/string_functions.c)
 
 add_executable(funky-as-bin src/main.c)
 target_link_libraries(funky-as-bin funky-as)

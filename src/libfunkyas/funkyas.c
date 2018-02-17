@@ -6,7 +6,7 @@
 #include <funkyas/funkyas.h>
 
 #include "instructions.h"
-#include "funkyas/vm_arch.h"
+#include "vm_arch.h"
 #include "funkyas/funkyas.h"
 #include "constants.h"
 #include "string_functions.h"
