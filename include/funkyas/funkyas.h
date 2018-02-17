@@ -5,10 +5,10 @@
 #ifndef ASSEMBLER_ASSEMBLER_H
 #define ASSEMBLER_ASSEMBLER_H
 
+#include <stdlib.h>
 #include <stdint.h>
 
 typedef unsigned char byte_t;
-
 typedef struct {
     byte_t* bytes;
     size_t length;
