@@ -8,10 +8,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "vm_arch.h"
+
 typedef unsigned char byte_t;
 typedef struct {
     byte_t* bytes;
-    size_t length;
+    vm_type_t length;
 } funky_bytecode_t;
 
 int funky_assemble_files(const char *filename, const char *filename_output, int strip_debug);
