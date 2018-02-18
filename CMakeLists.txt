@@ -17,3 +17,5 @@ add_executable(funky-as-bin src/main.c)
 target_link_libraries(funky-as-bin funky-as)
 set_target_properties(funky-as-bin PROPERTIES OUTPUT_NAME funky-as)
 file(COPY include DESTINATION ${CMAKE_BINARY_DIR})
+
+install(TARGETS funky-as-bin DESTINATION bin)
