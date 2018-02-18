@@ -5,11 +5,16 @@
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static
 #include "optparse.h"
+#include "version.h"
+#include "libfunkyas/vm_arch.h"
+
+#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
 
 int main(int argc, char **argv) {
     struct optparse_long longopts[] = {
             {"output", 'o', OPTPARSE_REQUIRED},
             {"strip-debug", 'r', OPTPARSE_REQUIRED},
+            {"version", 'v', OPTPARSE_NONE},
             {0}
     };
 
@@ -27,6 +32,11 @@ int main(int argc, char **argv) {
             case 'r':
                 strip_debug = 1;
                 break;
+            case 'v':
+                printf("Funky Assembler version %d.%d.%d\nTarget: %d bits (%s)\nBuilt on %s %s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION,
+                       (int)sizeof(vm_type_t) * 8, IS_BIG_ENDIAN ? "big-endian" : "little-endian",
+                       __DATE__, __TIME__);
+                return 0;
             default:
             case '?':
                 fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
