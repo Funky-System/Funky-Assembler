@@ -236,13 +236,13 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
 
             statement->instr = find_instr(instr);
             if (statement->instr == NULL) {
-                printf("%s:%d: Instruction '%s' is not valid\n", filename_hint, linenum, instr);
+                fprintf(stderr, "%s:%d: Instruction '%s' is not valid\n", filename_hint, linenum, instr);
                 exit(EXIT_FAILURE);
             }
 
             if (strcmp(instr, "export") == 0 || strcmp(instr, "export.as") == 0) {
                 if (section != SECTION_EXPORTS) {
-                    printf("%s:%d EXPORT found in section other than .EXPORTS'\n", filename_hint, linenum);
+                    fprintf(stderr, "%s:%d EXPORT found in section other than .EXPORTS'\n", filename_hint, linenum);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -252,6 +252,18 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
             char *operand_tok = strtok(remainder, ",\n");
 
             while (operand_tok != NULL) {
+                char *tmp_tok = operand_tok;
+                while (ends_in_open_string_literal(operand_tok)) {
+                    if (tmp_tok == NULL) {
+                        fprintf(stderr, "%s:%d Unterminated string literal found\n", filename_hint, linenum);
+                        exit(EXIT_FAILURE);
+                    }
+                    tmp_tok = tmp_tok + strlen(tmp_tok);
+                    tmp_tok[0] = ',';
+                    tmp_tok = strchr(tmp_tok + 1, ',');
+                    if (tmp_tok != NULL) tmp_tok[0] = '\0';
+                }
+
                 statement->num_operands++;
                 statement->operands_str = realloc(statement->operands_str,
                                                   sizeof(char *) * statement->num_operands);
@@ -263,7 +275,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                 operand = strdup(operand);
                 free(orig_operand);
 
-                while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ')
+                while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ' || operand[strlen(operand) - 1] == '\n')
                     operand[strlen(operand) - 1] = '\0';
 
                 if (operand[0] == '"') {
@@ -302,7 +314,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                 operand_tok = strtok(NULL, ",\n");
             }
             if (statement->num_operands != statement->instr->num_operands) {
-                printf("%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename_hint, linenum,
+                fprintf(stderr, "%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename_hint, linenum,
                        instr, statement->instr->num_operands, statement->num_operands);
                 exit(EXIT_FAILURE);
             }
@@ -383,7 +395,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
             // int literal
             long literal = strtol(operand_str, &pEnd, 0);
             if (literal > UINT32_MAX || literal < INT32_MIN) {
-                printf("%s:%d Warning: literal '%s' overflows 32 bits\n", statements[i].filename, statements[i].linenum,
+                fprintf(stderr, "%s:%d Warning: literal '%s' overflows 32 bits\n", statements[i].filename, statements[i].linenum,
                        operand_str);
             }
 
@@ -432,7 +444,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
                 } else if (strcmp(reg_str, "r7") == 0) {
                     statements[i].operands[o] = 12;
                 } else {
-                    printf("%s:%d '%s' is not a valid register\n", statements[i].filename, statements[i].linenum,
+                    fprintf(stderr, "%s:%d '%s' is not a valid register\n", statements[i].filename, statements[i].linenum,
                            operand_str);
                     exit(EXIT_FAILURE);
                 }
@@ -457,7 +469,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
                     }
                     if (found_label) continue;
 
-                    printf("%s:%d Could not find label '%s'\n", statements[i].filename, statements[i].linenum,
+                    fprintf(stderr, "%s:%d Could not find label '%s'\n", statements[i].filename, statements[i].linenum,
                            operand_str);
                     exit(EXIT_FAILURE);
                 }
@@ -470,7 +482,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
                         statements[i].operands[o] = unescape(operand_str[2], statements[i].filename,
                                                              statements[i].linenum);
                     } else {
-                        printf("%s:%d Operand starts with a quote ('), but is not a valid char literal: '%s'\n",
+                        fprintf(stderr, "%s:%d Operand starts with a quote ('), but is not a valid char literal: '%s'\n",
                                statements[i].filename, statements[i].linenum, operand_str);
                         exit(EXIT_FAILURE);
                     }
@@ -491,7 +503,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
             }
 
             // if we are heren, I don't know what to do with this operand...
-            printf("%s:%d Unexpected operand specified: '%s'\n", statements[i].filename, statements[i].linenum,
+            fprintf(stderr, "%s:%d Unexpected operand specified: '%s'\n", statements[i].filename, statements[i].linenum,
                    operand_str);
             exit(EXIT_FAILURE);
         }
@@ -539,7 +551,7 @@ static vm_type_t unescape(char escape, const char *filename, int linenum) {
         case '7':
             return '\7';
         default:
-            printf("%s:%d \\%c is not a valid escape sequence\n",
+            fprintf(stderr, "%s:%d \\%c is not a valid escape sequence\n",
                    filename, linenum, escape);
             exit(EXIT_FAILURE);
     }
