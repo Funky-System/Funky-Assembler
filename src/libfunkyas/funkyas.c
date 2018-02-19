@@ -249,69 +249,69 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
 
             char *remainder = strtok(NULL, "");
 
-            char *operand_tok = strtok(remainder, ",\n");
+            char *operand_tok = strsep(&remainder, ",\n");
 
             while (operand_tok != NULL) {
-                char *tmp_tok = operand_tok;
-                while (ends_in_open_string_literal(operand_tok)) {
-                    if (tmp_tok == NULL) {
-                        fprintf(stderr, "%s:%d Unterminated string literal found\n", filename_hint, linenum);
-                        exit(EXIT_FAILURE);
+                if (strcmp(operand_tok, "") != 0) {
+                    while (ends_in_open_string_literal(operand_tok)) {
+                        if (remainder == NULL) {
+                            fprintf(stderr, "%s:%d Unterminated string literal found\n", filename_hint, linenum);
+                            exit(EXIT_FAILURE);
+                        }
+                        operand_tok[strlen(operand_tok)] = ',';
+                        strsep(&remainder, ",\n");
                     }
-                    tmp_tok = tmp_tok + strlen(tmp_tok);
-                    tmp_tok[0] = ',';
-                    tmp_tok = strchr(tmp_tok + 1, ',');
-                    if (tmp_tok != NULL) tmp_tok[0] = '\0';
+
+                    statement->num_operands++;
+                    statement->operands_str = realloc(statement->operands_str,
+                                                      sizeof(char *) * statement->num_operands);
+                    char *operand = malloc(strlen(operand_tok) + 1);
+                    char *orig_operand = operand; // to pass to free
+                    strcpy(operand, operand_tok);
+                    while (operand[0] == '\t' || operand[0] == ' ')
+                        operand++;
+                    operand = strdup(operand);
+                    free(orig_operand);
+
+                    while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ' ||
+                           operand[strlen(operand) - 1] == '\n')
+                        operand[strlen(operand) - 1] = '\0';
+
+                    if (operand[0] == '"') {
+                        char *replaced_data = fas_str_replace(operand, "\\\"", "\"");
+                        fas_str_replace_inplace(&replaced_data, "\\n", "\n");
+                        fas_str_replace_inplace(&replaced_data, "\\0", "\0");
+                        free(operand);
+                        operand = replaced_data;
+                    }
+
+                    statement->operands_str[statement->num_operands - 1] = operand;
+
+                    if ((strcmp(instr, "data") != 0 && strcmp(instr, "export.as") != 0) && operand[0] == '"') {
+                        // this is a string, create a .data statement
+                        char *data_label = malloc(12);
+                        int num_operands = statement->num_operands;
+                        sprintf(data_label, "__str_%d_%d", linenum, statement->num_operands);
+                        num_statements++;
+                        statements = realloc(statements, sizeof(Statement) * num_statements);
+                        memset(&statements[num_statements - 1], 0, sizeof(Statement));
+                        statement = &statements[num_statements - num_operands -
+                                                1]; // realloc might have changed it's position, so reset it
+                        Statement *data_statement = &statements[num_statements - 1];
+                        data_statement->linenum = linenum;
+                        data_statement->filename = filename_hint;
+                        data_statement->section = SECTION_DATA;
+                        data_statement->instr = find_instr("data");
+                        data_statement->instr_str = strdup("data");
+                        data_statement->label = data_label;
+                        data_statement->operands_str = malloc(sizeof(char *));
+                        data_statement->operands_str[0] = statement->operands_str[statement->num_operands - 1];
+                        data_statement->num_operands = 1;
+
+                        statement->operands_str[statement->num_operands - 1] = strdup(data_label);
+                    }
                 }
-
-                statement->num_operands++;
-                statement->operands_str = realloc(statement->operands_str,
-                                                  sizeof(char *) * statement->num_operands);
-                char *operand = malloc(strlen(operand_tok) + 1);
-                char *orig_operand = operand; // to pass to free
-                strcpy(operand, operand_tok);
-                while (operand[0] == '\t' || operand[0] == ' ')
-                    operand++;
-                operand = strdup(operand);
-                free(orig_operand);
-
-                while (operand[strlen(operand) - 1] == '\t' || operand[strlen(operand) - 1] == ' ' || operand[strlen(operand) - 1] == '\n')
-                    operand[strlen(operand) - 1] = '\0';
-
-                if (operand[0] == '"') {
-                    char *replaced_data = fas_str_replace(operand, "\\\"", "\"");
-                    fas_str_replace_inplace(&replaced_data, "\\n", "\n");
-                    fas_str_replace_inplace(&replaced_data, "\\0", "\0");
-                    free(operand);
-                    operand = replaced_data;
-                }
-
-                statement->operands_str[statement->num_operands - 1] = operand;
-
-                if ((strcmp(instr, "data") != 0 && strcmp(instr, "export.as") != 0) && operand[0] == '"') {
-                    // this is a string, create a .data statement
-                    char *data_label = malloc(12);
-                    int num_operands = statement->num_operands;
-                    sprintf(data_label, "__str_%d_%d", linenum, statement->num_operands);
-                    num_statements++;
-                    statements = realloc(statements, sizeof(Statement) * num_statements);
-                    memset(&statements[num_statements - 1], 0, sizeof(Statement));
-                    statement = &statements[num_statements - num_operands - 1]; // realloc might have changed it's position, so reset it
-                    Statement *data_statement = &statements[num_statements - 1];
-                    data_statement->linenum = linenum;
-                    data_statement->filename = filename_hint;
-                    data_statement->section = SECTION_DATA;
-                    data_statement->instr = find_instr("data");
-                    data_statement->instr_str = strdup("data");
-                    data_statement->label = data_label;
-                    data_statement->operands_str = malloc(sizeof(char *));
-                    data_statement->operands_str[0] = statement->operands_str[statement->num_operands - 1];
-                    data_statement->num_operands = 1;
-
-                    statement->operands_str[statement->num_operands - 1] = strdup(data_label);
-                }
-
-                operand_tok = strtok(NULL, ",\n");
+                operand_tok = strsep(&remainder, ",\n");
             }
             if (statement->num_operands != statement->instr->num_operands) {
                 fprintf(stderr, "%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename_hint, linenum,
