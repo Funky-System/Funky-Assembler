@@ -72,6 +72,7 @@ Instruction instructions[] = {
         {.name = "or", .bytecode = 0x37, .num_operands = 0},
         {.name = "xor", .bytecode = 0x38, .num_operands = 0},
         {.name = "not", .bytecode = 0x39, .num_operands = 0},
+        {.name = "not.bitwise", .bytecode = 0x44, .num_operands = 0},
         {.name = "cmp", .bytecode = 0x3A, .num_operands = 0},
         {.name = "eq", .bytecode = 0x3B, .num_operands = 0},
         {.name = "ne", .bytecode = 0x3C, .num_operands = 0},
