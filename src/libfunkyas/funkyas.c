@@ -283,6 +283,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                         replaced_data[strlen(operand) - 2] = '\0';
                         replaced_data = fas_str_replace(replaced_data, "\\\"", "\"");
                         fas_str_replace_inplace(&replaced_data, "\\n", "\n");
+                        fas_str_replace_inplace(&replaced_data, "\\t", "\t");
                         fas_str_replace_inplace(&replaced_data, "\\0", "\0");
                         fas_str_replace_inplace(&replaced_data, "\\\\", "\\");
                         free(operand);
