@@ -278,11 +278,20 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                         operand[strlen(operand) - 1] = '\0';
 
                     if (operand[0] == '"') {
-                        char *replaced_data = fas_str_replace(operand, "\\\"", "\"");
+                        char *replaced_data = malloc(strlen(operand) - 2 + 1);
+                        strncpy(replaced_data, operand + 1, strlen(operand) - 2);
+                        replaced_data[strlen(operand) - 2] = '\0';
+                        replaced_data = fas_str_replace(replaced_data, "\\\"", "\"");
                         fas_str_replace_inplace(&replaced_data, "\\n", "\n");
                         fas_str_replace_inplace(&replaced_data, "\\0", "\0");
+                        fas_str_replace_inplace(&replaced_data, "\\\\", "\\");
                         free(operand);
-                        operand = replaced_data;
+                        char *new_str = malloc(strlen(replaced_data) + 3);
+                        strcpy(new_str, "\"");
+                        strcat(new_str, replaced_data);
+                        strcat(new_str, "\"");
+                        free(replaced_data);
+                        operand = new_str;
                     }
 
                     statement->operands_str[statement->num_operands - 1] = operand;

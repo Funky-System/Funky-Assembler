@@ -23,7 +23,10 @@ char* fas_str_replace(const char *string, const char *substr, const char *replac
 		return newstr;
 	}
 
-	while ((tok = strstr(newstr, substr))) {
+    size_t offset = 0;
+	while ((tok = strstr(newstr + offset, substr))) {
+        offset = (tok - newstr) + replacement_len;
+
 		oldstr = newstr;
 		oldstr_len = strlen(oldstr);
 		newstr = (char*)malloc(sizeof(char) * (oldstr_len - substr_len + replacement_len + 1));
