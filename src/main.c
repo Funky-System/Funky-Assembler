@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
                 strip_debug = 1;
                 break;
             case 'v':
-                printf("Funky Assembler version %d.%d.%d\nTarget: %d bits (%s)\nBuilt on %s %s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION,
+                printf("Funky Assembler version %s.%s.%s\nTarget: %d bits (%s)\nBuilt on %s %s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION,
                        (int)sizeof(vm_type_t) * 8, IS_BIG_ENDIAN ? "big-endian" : "little-endian",
                        __DATE__, __TIME__);
                 return 0;
