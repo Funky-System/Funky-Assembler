@@ -21,6 +21,8 @@ Instruction instructions[] = {
         {.name = "syscall.byname", .bytecode = 0x0D, .num_operands = 1},
         {.name = "syscall", .bytecode = 0x0E, .num_operands = 1},
         {.name = "syscall.pop", .bytecode = 0x0F, .num_operands = 0},
+        {.name = "link.pop", .bytecode = 0xD0, .num_operands = 0},
+        {.name = "unlink.pop", .bytecode = 0xD1, .num_operands = 0},
 
         {.name = "ld.int", .bytecode = 0x10, .num_operands = 1},
         {.name = "ld.uint", .bytecode = 0x11, .num_operands = 1},
