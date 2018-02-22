@@ -23,6 +23,8 @@ Instruction instructions[] = {
         {.name = "syscall.pop", .bytecode = 0x0F, .num_operands = 0},
         {.name = "link.pop", .bytecode = 0xD0, .num_operands = 0},
         {.name = "unlink.pop", .bytecode = 0xD1, .num_operands = 0},
+        {.name = "mod.exists", .bytecode = 0xD2, .num_operands = 0},
+        {.name = "mod.isloaded", .bytecode = 0xD3, .num_operands = 0},
 
         {.name = "ld.int", .bytecode = 0x10, .num_operands = 1},
         {.name = "ld.uint", .bytecode = 0x11, .num_operands = 1},
