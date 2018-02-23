@@ -24,7 +24,7 @@ typedef struct {
     char *instr_str;
 
     char **operands_str;
-    int *operands;
+    int64_t *operands;
     int num_operands;
 
     char *label;
@@ -402,7 +402,7 @@ static unsigned int calculate_offsets(Statement *statements, int num_statements,
             offset += sizeOfVmType();
         } else {
             offset += 1; // bytecode
-            offset += statements[i].instr->num_operands * sizeof(uint32_t);
+            offset += statements[i].instr->num_operands * sizeOfVmType();
         }
     }
 
@@ -411,7 +411,7 @@ static unsigned int calculate_offsets(Statement *statements, int num_statements,
 
 static void dereference_operands(Statement *statements, int num_statements) {
     for (int i = 0; i < num_statements; i++) {
-        statements[i].operands = malloc(sizeOfVmType() * statements[i].num_operands);
+        statements[i].operands = calloc(1, sizeof(int64_t) * statements[i].num_operands);
         for (int o = 0; o < statements[i].num_operands; o++) {
             char *operand_str = statements[i].operands_str[o];
 
@@ -425,7 +425,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
 
             if (*pEnd == '\0') {
                 // whole string has been converted to an integer
-                statements[i].operands[o] = (int) literal;
+                memcpy(&(statements[i].operands[o]), &literal, sizeof(literal));
                 continue;
             }
 

@@ -7,6 +7,6 @@
 
 #define VERSION_MAJOR "2018"
 #define VERSION_MINOR "1"
-#define VERSION_REVISION "1"
+#define VERSION_REVISION "2"
 
 #endif //FUNKY_AS_VERSION_H
