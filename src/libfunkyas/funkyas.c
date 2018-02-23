@@ -88,19 +88,17 @@ int ends_in_open_string_literal(char *str) {
 }
 
 static size_t vmTypeSize = 4;
-static size_t vmValueSize = 8;
 
 void funky_assembler_set_size(size_t size) {
     vmTypeSize = size;
-    vmValueSize = size * 2;
 }
 
 static size_t sizeOfVmValue() {
-    return 0;
+    return vmTypeSize * 2;
 }
 
 static size_t sizeOfVmType() {
-    return 0;
+    return vmTypeSize;
 }
 
 int funky_assemble_files(const char *filename_in, const char *filename_output, int strip_debug) {
