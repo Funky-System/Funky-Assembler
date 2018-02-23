@@ -3,7 +3,7 @@
 
 struct constant {
     const char *str;
-    vm_type_t val;
+    int val;
 };
 
 static struct constant constants[] = {
@@ -25,7 +25,7 @@ int is_constant(const char* str) {
     return 0;
 }
 
-vm_type_t get_constant(const char* str) {
+int get_constant(const char* str) {
     int i = 0;
     while (constants[i].str != 0) {
         if (strcmp(str, constants[i].str) == 0) return constants[i].val;

@@ -8,6 +8,6 @@
 #include "vm_arch.h"
 
 int is_constant(const char* str);
-vm_type_t get_constant(const char* str);
+int get_constant(const char* str);
 
 #endif //FUNKY_AS_CONSTANTS_H

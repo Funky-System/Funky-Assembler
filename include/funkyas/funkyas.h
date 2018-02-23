@@ -19,5 +19,6 @@ typedef struct funky_bytecode_t {
 
 int funky_assemble_files(const char *filename, const char *filename_output, int strip_debug);
 funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, int strip_debug);
+void funky_assembler_set_size(size_t size);
 
 #endif //ASSEMBLER_ASSEMBLER_H

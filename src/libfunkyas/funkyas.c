@@ -24,7 +24,7 @@ typedef struct {
     char *instr_str;
 
     char **operands_str;
-    vm_type_t *operands;
+    int *operands;
     int num_operands;
 
     char *label;
@@ -38,10 +38,10 @@ typedef struct {
 
 static void dereference_operands(Statement *statements, int num_statements);
 static unsigned int calculate_offsets(Statement *statements, int num_statements, enum Section section, unsigned int offset);
-static vm_type_t unescape(char escape, const char *filename, int linenum);
+static int unescape(char escape, const char *filename, int linenum);
 static size_t assemble_section(const Statement *statements, int num_statements, byte_t **output, size_t output_size,
                         enum Section section);
-static size_t assemble_full(Statement *statements, int num_statements, byte_t **output, vm_type_t text_section_offset);
+static size_t assemble_full(Statement *statements, int num_statements, byte_t **output, int text_section_offset);
 
 void destroy(Statement *statements, int i);
 
@@ -85,6 +85,22 @@ int ends_in_open_string_literal(char *str) {
         }
     }
     return open;
+}
+
+static size_t vmTypeSize = 4;
+static size_t vmValueSize = 8;
+
+void funky_assembler_set_size(size_t size) {
+    vmTypeSize = size;
+    vmValueSize = size * 2;
+}
+
+static size_t sizeOfVmValue() {
+    return 0;
+}
+
+static size_t sizeOfVmType() {
+    return 0;
 }
 
 int funky_assemble_files(const char *filename_in, const char *filename_output, int strip_debug) {
@@ -299,7 +315,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
 
                     if ((strcmp(instr, "data") != 0 && strcmp(instr, "export.as") != 0) && operand[0] == '"') {
                         // this is a string, create a .data statement
-                        char *data_label = malloc(12);
+                        char *data_label = malloc(64);
                         int num_operands = statement->num_operands;
                         sprintf(data_label, "__str_%d_%d", linenum, statement->num_operands);
                         num_statements++;
@@ -335,7 +351,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
     unsigned int offset = 0;
     offset = calculate_offsets(statements, num_statements, SECTION_EXPORTS, offset);
     offset = calculate_offsets(statements, num_statements, SECTION_DATA, offset);
-    vm_type_t text_section_offset = offset;
+    int text_section_offset = offset;
     offset = calculate_offsets(statements, num_statements, SECTION_TEXT, offset);
 
     dereference_operands(statements, num_statements);
@@ -371,21 +387,21 @@ static unsigned int calculate_offsets(Statement *statements, int num_statements,
         if (statements[i].instr == NULL) continue;
 
         if (strcmp(statements[i].instr->name, "var") == 0) {
-            offset += sizeof(vm_value_t);
+            offset += sizeOfVmValue();
         } else if (strcmp(statements[i].instr->name, "data") == 0) {
             if (statements[i].operands_str[0][0] == '"') {
-                offset += sizeof(vm_type_t) + strlen(statements[i].operands_str[0]) - 2 + 1;
+                offset += sizeOfVmType() + strlen(statements[i].operands_str[0]) - 2 + 1;
             } else if (statements[i].operands_str[0][0] == '\'') {
                 offset += 1;
             } else {
-                offset += sizeof(vm_type_t);
+                offset += sizeOfVmType();
             }
         } else if (strcmp(statements[i].instr->name, "export") == 0) {
             offset += strlen(statements[i].operands_str[0]) + 1;
-            offset += sizeof(vm_type_t);
+            offset += sizeOfVmType();
         } else if (strcmp(statements[i].instr->name, "export.as") == 0) {
             offset += strlen(statements[i].operands_str[1]) - 2 + 1;
-            offset += sizeof(vm_type_t);
+            offset += sizeOfVmType();
         } else {
             offset += 1; // bytecode
             offset += statements[i].instr->num_operands * sizeof(uint32_t);
@@ -397,7 +413,7 @@ static unsigned int calculate_offsets(Statement *statements, int num_statements,
 
 static void dereference_operands(Statement *statements, int num_statements) {
     for (int i = 0; i < num_statements; i++) {
-        statements[i].operands = malloc(sizeof(vm_type_t) * statements[i].num_operands);
+        statements[i].operands = malloc(sizeOfVmType() * statements[i].num_operands);
         for (int o = 0; o < statements[i].num_operands; o++) {
             char *operand_str = statements[i].operands_str[o];
 
@@ -411,7 +427,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
 
             if (*pEnd == '\0') {
                 // whole string has been converted to an integer
-                statements[i].operands[o] = (vm_type_t) literal;
+                statements[i].operands[o] = (int) literal;
                 continue;
             }
 
@@ -464,7 +480,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
             if (isstralphanum(operand_str)) {
                 // check for constant
                 if (is_constant(operand_str)) {
-                    statements[i].operands[o] = (vm_type_t) get_constant(operand_str);
+                    statements[i].operands[o] = get_constant(operand_str);
                     continue;
                 } else {
                     // looks like a label
@@ -497,7 +513,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
                         exit(EXIT_FAILURE);
                     }
                 } else {
-                    statements[i].operands[o] = (vm_type_t) operand_str[1];
+                    statements[i].operands[o] = operand_str[1];
                 }
                 continue;
             }
@@ -520,7 +536,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
     }
 }
 
-static vm_type_t unescape(char escape, const char *filename, int linenum) {
+static int unescape(char escape, const char *filename, int linenum) {
     switch (escape) {
         case '\'':
             return '\'';
@@ -578,8 +594,8 @@ static vm_type_t unescape(char escape, const char *filename, int linenum) {
 //#define FLAG_LITTLE_ENDIAN 64
 //#define FLAG_LITTLE_ENDIAN 128
 
-static vm_type_t get_num_exports(Statement *statements, int num_statements) {
-    vm_type_t num = 0;
+static int get_num_exports(Statement *statements, int num_statements) {
+    int num = 0;
     for (int i = 0; i < num_statements; i++) {
         if (statements[i].instr != NULL && str_startswith(statements[i].instr->name, "export"))
             num++;
@@ -587,12 +603,12 @@ static vm_type_t get_num_exports(Statement *statements, int num_statements) {
     return num;
 }
 
-static size_t assemble_full(Statement *statements, int num_statements, byte_t **output, vm_type_t text_section_offset) {
+static size_t assemble_full(Statement *statements, int num_statements, byte_t **output, int text_section_offset) {
     *output = realloc(*output, 0);
     size_t output_size = 0;
 
     // header
-    output_size += 6 + 2 * sizeof(vm_type_t);
+    output_size += 6 + 2 * sizeOfVmType();
     *output = realloc(*output, output_size);
     memcpy(*output, "funk", 4);
 
@@ -603,9 +619,14 @@ static size_t assemble_full(Statement *statements, int num_statements, byte_t **
     }
 
     (*output)[4] = flags;
-    (*output)[5] = sizeof(vm_type_t);
-    *((vm_type_t *) ((*output) + 6)) = get_num_exports(statements, num_statements);
-    *((vm_type_t *) ((*output) + 6 + sizeof(vm_type_t))) = text_section_offset;
+    (*output)[5] = sizeOfVmType();
+    if (sizeOfVmType() == 4) {
+        *((uint32_t * )((*output) + 6)) = (uint32_t)get_num_exports(statements, num_statements);
+        *((uint32_t * )((*output) + 6 + sizeof(uint32_t))) = (uint32_t)text_section_offset;
+    } else if (sizeOfVmType() == 8) {
+        *((uint64_t * )((*output) + 6)) = (uint64_t)get_num_exports(statements, num_statements);
+        *((uint64_t * )((*output) + 6 + sizeof(uint64_t))) = (uint64_t)text_section_offset;
+    }
 
     // code
     output_size = assemble_section(statements, num_statements, output, output_size, SECTION_EXPORTS);
@@ -617,7 +638,7 @@ static size_t assemble_full(Statement *statements, int num_statements, byte_t **
 }
 
 static size_t assemble_section(const Statement *statements, int num_statements, byte_t **output, size_t output_size,
-                        enum Section section) {
+                               enum Section section) {
     for (int i = 0; i < num_statements; i++) {
         if (statements[i].section != section) continue;
 
@@ -625,17 +646,21 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
         if (statements[i].instr == NULL) continue;
 
         if (strcmp(statements[i].instr->name, "var") == 0) {
-            output_size += sizeof(vm_value_t);
+            output_size += sizeOfVmValue();
             *output = realloc(*output, output_size);
-            for (int b = 0; b < sizeof(vm_value_t); b++) {
+            for (int b = 0; b < sizeOfVmValue(); b++) {
                 (*output)[offset++] = 0;
             }
         } else if (strcmp(statements[i].instr->name, "data") == 0) {
             if (statements[i].operands_str[0][0] == '"') {
-                output_size += sizeof(vm_type_t) + strlen(statements[i].operands_str[0]) - 2 + 1;
+                output_size += sizeOfVmType() + strlen(statements[i].operands_str[0]) - 2 + 1;
                 *output = realloc(*output, output_size);
-                *(vm_type_t *) ((*output) + offset) = VM_UNSIGNED_MAX;
-                offset += sizeof(vm_type_t);
+                if (sizeOfVmType() == 4) {
+                    *(uint32_t * )((*output) + offset) = UINT32_MAX;
+                } else if (sizeOfVmType() == 8) {
+                    *(uint64_t * )((*output) + offset) = UINT64_MAX;
+                }
+                offset += sizeOfVmType();
                 (*output)[offset] = '\0';
                 strncat((char*)((*output) + offset), statements[i].operands_str[0] + 1,
                         strlen(statements[i].operands_str[0]) - 2);
@@ -644,16 +669,20 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
                 *output = realloc(*output, output_size);
                 (*output)[offset] = (char) statements[i].operands[0];
             } else {
-                output_size += sizeof(vm_type_t);
+                output_size += sizeOfVmType();
                 *output = realloc(*output, output_size);
-                *(vm_type_t *) ((*output) + offset) = statements[i].operands[0];
+                if (sizeOfVmType() == 4) {
+                    *(uint32_t *) ((*output) + offset) = (uint32_t) statements[i].operands[0];
+                } else if (sizeOfVmType() == 8) {
+                    *(uint64_t *) ((*output) + offset) = (uint64_t) statements[i].operands[0];
+                }
             }
         } else if (strcmp(statements[i].instr->name, "export") == 0) {
-            output_size += strlen(statements[i].operands_str[0]) + 1 + sizeof(vm_type_t);
+            output_size += strlen(statements[i].operands_str[0]) + 1 + sizeOfVmType();
             *output = realloc(*output, output_size);
             strcpy((char*)((*output) + offset), statements[i].operands_str[0]);
             offset += strlen(statements[i].operands_str[0]) + 1;
-            for (int b = 0; b < sizeof(vm_type_t); b++) {
+            for (int b = 0; b < sizeOfVmType(); b++) {
                 (*output)[offset++] = ((byte_t *) (&statements[i].operands[0]))[b];
             }
         } else if (strcmp(statements[i].instr->name, "export.as") == 0) {
@@ -661,19 +690,19 @@ static size_t assemble_section(const Statement *statements, int num_statements, 
             name[0] = '\0';
             strncat(name, statements[i].operands_str[1] + 1, strlen(statements[i].operands_str[1]) - 2);
 
-            output_size += strlen(name) + 1 + sizeof(vm_type_t);
+            output_size += strlen(name) + 1 + sizeOfVmType();
             *output = realloc(*output, output_size);
             strcpy((char*)((*output) + offset), name);
             offset += strlen(name) + 1;
-            for (int b = 0; b < sizeof(vm_type_t); b++) {
+            for (int b = 0; b < sizeOfVmType(); b++) {
                 (*output)[offset++] = ((byte_t *) (&statements[i].operands[0]))[b];
             }
         } else {
-            output_size += 1 + statements[i].num_operands * sizeof(vm_type_t);
+            output_size += 1 + statements[i].num_operands * sizeOfVmType();
             *output = realloc(*output, output_size);
             (*output)[offset++] = statements[i].instr->bytecode;
             for (int o = 0; o < statements[i].num_operands; o++) {
-                for (int b = 0; b < sizeof(vm_type_t); b++) {
+                for (int b = 0; b < sizeOfVmType(); b++) {
                     (*output)[offset++] = ((byte_t *) (&statements[i].operands[o]))[b];
                 }
             }
