@@ -45,7 +45,7 @@ static size_t assemble_full(Statement *statements, int num_statements, byte_t **
 
 void destroy(Statement *statements, int i);
 
-static char *strlwr(char *s) {
+static char *funky_strlwr(char *s) {
     char *tmp = s;
 
     for (; *tmp; ++tmp) {
@@ -191,7 +191,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
             section_str[0] = '\0';
             unsigned long len = strpbrk(line + 8, " \n\t") - (line + 8);
             strncat(section_str, line + 8, len);
-            strlwr(section_str);
+            funky_strlwr(section_str);
 
             if (strcmp(section_str, ".data") == 0) section = SECTION_DATA;
             else if (strcmp(section_str, ".text") == 0) section = SECTION_TEXT;
@@ -239,7 +239,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
         char *instr = strtok(line, " \t\n");
 
         if (instr != NULL) {
-            strlwr(instr);
+            funky_strlwr(instr);
 
             if (strip_debug && str_startswith(instr, "debug.")) {
                 continue;
@@ -440,7 +440,7 @@ static void dereference_operands(Statement *statements, int num_statements) {
             if (operand_str[0] == '%') {
                 // reference a register
                 char *reg_str = operand_str + 1;
-                strlwr(reg_str);
+                funky_strlwr(reg_str);
                 if (strcmp(reg_str, "pc") == 0) {
                     statements[i].operands[o] = 0;
                 } else if (strcmp(reg_str, "sp") == 0) {
