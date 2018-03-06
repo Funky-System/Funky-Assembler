@@ -13,6 +13,10 @@
 
 #define str_startswith(str, strstart) (strstr(str, strstart) == (str))
 
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
+
 enum Section {
     SECTION_TEXT,
     SECTION_DATA,
