@@ -55,6 +55,22 @@ static char *funky_strlwr(char *s) {
     return s;
 }
 
+char* funky_strsep(char** stringp, const char* delim) {
+	char* start = *stringp;
+	char* p;
+
+	p = (start != NULL) ? strpbrk(start, delim) : NULL;
+
+	if (p == NULL) {
+		*stringp = NULL;
+	} else {
+		*p = '\0';
+		*stringp = p + 1;
+	}
+
+	return start;
+}
+
 static int isstralphanum(char *s) {
     for (; *s; ++s) {
         if (!isalnum(*s) && *s != '_' && *s != '.' && *s != '@') return 0;
@@ -151,8 +167,12 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
 
     int first_line = 1;
 
-    while ((input = first_line ? input : strchr(input, '\n') + 1) != NULL + 1) {
-        first_line = 0;
+    while ((input = first_line ? input : strchr(input, '\n')) != NULL) {
+		if (first_line) {
+			first_line = 0;
+		} else {
+			input += 1;
+		}
 
         const char *next_line = strchr(input, '\n');
         size_t length;
@@ -263,7 +283,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
 
             char *remainder = strtok(NULL, "");
 
-            char *operand_tok = strsep(&remainder, ",\n");
+            char *operand_tok = funky_strsep(&remainder, ",\n");
 
             while (operand_tok != NULL) {
                 if (strcmp(operand_tok, "") != 0) {
@@ -273,7 +293,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                             exit(EXIT_FAILURE);
                         }
                         operand_tok[strlen(operand_tok)] = ',';
-                        strsep(&remainder, ",\n");
+                        funky_strsep(&remainder, ",\n");
                     }
 
                     statement->num_operands++;
@@ -335,7 +355,7 @@ funky_bytecode_t funky_assemble(const char *filename_hint, const char *input, in
                         statement->operands_str[statement->num_operands - 1] = strdup(data_label);
                     }
                 }
-                operand_tok = strsep(&remainder, ",\n");
+                operand_tok = funky_strsep(&remainder, ",\n");
             }
             if (statement->num_operands != statement->instr->num_operands) {
                 fprintf(stderr, "%s:%d Instruction '%s' expects %d operand(s). Currently given: %d\n", filename_hint, linenum,
