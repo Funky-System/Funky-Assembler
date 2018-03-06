@@ -5,6 +5,10 @@ set(CMAKE_C_STANDARD 11)
 
 add_definitions(-DVM_ARCH_BITS=32)
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 include_directories(include)
 
 add_library(funky-as STATIC
