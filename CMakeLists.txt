@@ -3,6 +3,10 @@ project(funky-as)
 
 set(CMAKE_C_STANDARD 11)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
+endif()
+
 add_definitions(-DVM_ARCH_BITS=32)
 
 if(MSVC)
